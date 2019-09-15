@@ -9,6 +9,11 @@ const pool = new Pool({
   // port: 3211,
 })
 
+interface QueryObject {
+  where?: string[],
+  limit?: number,
+}
+
 // interface MoleculeRecord {
 //   // id?: integer,
 //   name: string,
@@ -30,17 +35,26 @@ export default class Database {
     }
   }
 
-  static async get(table: string, query: { where?: string[] }) {
+  static async first(table: string, query: QueryObject) {
+    query.limit = 1
+    const rows = await this.get(table, query)
+    return rows ? rows[0] : undefined
+  }
+
+  static async get(table: string, query: QueryObject) {
     try {
-      const { where } = query
+      const { where, limit } = query
       let searchQuery = `SELECT * FROM ${table}`
       const searchValues = []
       if (where) {
-        searchQuery = [searchQuery, `WHERE ${where[0]} = $1`].join(' ')
+        searchQuery = [searchQuery, `WHERE "${where[0]}" = $1`].join(' ')
         searchValues.push(where[1])
       }
+      if (limit) {
+        searchQuery = [searchQuery, `LIMIT ${limit}`].join(' ')
+      }
       const response = await pool.query(searchQuery, searchValues)
-      console.log(22, response)
+      // console.log(33, searchQuery, searchValues, response.rows.length, response.rows.map(r => r.id))
       return response.rows
     } catch (error) {
       console.error(error)
@@ -48,11 +62,19 @@ export default class Database {
     }
   }
 
+  static async insertUnique(table: string, unique: [string, string], obj: { [key: string]: any }) {
+    const exists = await Database.first(table, { where: unique })
+    if (exists) return exists
+    await this.insert(table, obj)
+    return await Database.first(table, { where: unique })
+  }
+
   static async insert(table: string, obj: { [key: string]: any }) {
     try {
       const insertQuery = `INSERT INTO ${table}(${Object.keys(obj).map(v => `"${v}"`).join(', ')}) VALUES(${Object.keys(obj).map((k, i) => `$${i+1}`).join(', ')})`
       const insertValues = Object.keys(obj).map(k => obj[k])
-      await pool.query(insertQuery, insertValues)
+      const response = await pool.query(insertQuery, insertValues)
+      return response.rows[0]
     } catch (error) {
       console.error(error)
       return

@@ -19,7 +19,7 @@ export default class Kinome {
   // First column is always the gene
   // constructor() {}
   static table = 'kinase_screen'
-  // columns: string[] = ['moleculeLincsId', 'moleculeName', 'proteinLincsId', 'proteinName', 'score', 'concentration', 'contentrationUnit']
+  // columns: string[] = ['moleculeLincsId', 'moleculeName', 'proteinLincsId', 'proteinName', 'score', 'concentration', 'concentrationUnit']
   static async parseCsv(data: string): Promise<KinomeRecord[]> {
     return await new Promise((resolve, reject) => {
       parse(data, {

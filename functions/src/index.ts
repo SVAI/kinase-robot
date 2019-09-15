@@ -4,17 +4,33 @@ import DrugScreen from './Kinome';
 import Tools from './Tools';
 import Kinome from './Kinome';
 
+export const downloadLincs = functions.runWith({ timeoutSeconds: 540 }).https.onRequest(async (req, resp) => {
+  // http://lincs.hms.harvard.edu/db/datasets/20342/results?search=&output_type=.csv
+  // const moleculeId = '20342'
+  const moleculeIds = LincsScan.moleculeIds
+  console.log('starting downloading molecule data')
+  await Tools.asyncForEach(moleculeIds, async (moleculeId: string) => {
+    console.log('working on', moleculeId)
+    await LincsScan.downloadMolecule(moleculeId)
+  })
+  console.log('done')
+  resp.send({ size: moleculeIds.length })
+})
+
 export const loadLincs = functions.https.onRequest(async (req, resp) => {
   // const url = 'http://lincs.hms.harvard.edu/db/datasets/20107/results?search=&output_type=.csv'
-  const lincsScan = new LincsScan()
   // const data = await lincsScan.fetch()
-  const path = '/dataset_20107_20190914215210.csv'
-  const data = await Tools.fetchLocal(path)
-  const data2 = await lincsScan.parseSync(data)
+  const moleculeIds = LincsScan.moleculeIds
+  console.log('starting parsing molecule data')
+  await Tools.asyncForEach(moleculeIds, async (moleculeId: string) => {
+    console.log('working on', moleculeId)
+    const data = await LincsScan.parseMolecule(moleculeId)
+    await LincsScan.saveMolecule(data)
+  })
   // const database = new Database()
   // await database.connect()
   // const data2 = await database.getRows()
-  resp.send({ data2 })
+  resp.send({})
 })
 
 export const loadKinese = functions.https.onRequest(async (req, resp) => {
