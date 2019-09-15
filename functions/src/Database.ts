@@ -10,7 +10,7 @@ const pool = new Pool({
 })
 
 interface QueryObject {
-  where?: string[],
+  where?: (string | number)[],
   limit?: number,
 }
 

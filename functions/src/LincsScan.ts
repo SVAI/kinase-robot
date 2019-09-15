@@ -29,6 +29,7 @@ export interface KinaseIntensityRecord {
   id?: number,
   score: number,
   protein: number,
+  proteinName: string,
   molecule: number,
   concentration: number,
   concentrationUnit: string,
@@ -90,6 +91,7 @@ export default class LincsScan {
       const kinaseIntensity: KinaseIntensityRecord = {
         score: lincs.score,
         protein: proteinId,
+        proteinName: lincs.proteinName,
         molecule: moleculeId,
         concentration: lincs.concentration,
         concentrationUnit: lincs.concentrationUnit,
