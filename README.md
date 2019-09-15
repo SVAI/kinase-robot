@@ -30,22 +30,38 @@
 
 #### *1. What additional data would you like to have*
 
+- Additional kinome data from all drugs and compounds in the world
+- Toxicity data based on kinases inhibited
+- Pathway interactions from kinases to others, up and down regulating (Kegg?)
+- More Kinome screening data from the tumors we're trying to identify drugs for (to cancel out error rates)
+
 #### *2. What are the next rational steps?* 
+
+- Adding to the pipeline
+- Implementing multiple pipeline components, such as feedback loops from drug screending data (both positive and negative)
+- Ability to use Kinase expressions from a single tumor for personalized drug predictions
+- Add toxicity predictions
+- Add combination therapy predictions
+- Add RNA predictions
 
 #### *3. What additional tools or pipelines will be needed for those steps?*
 
+- Toxicity prediction module
+- Pathway extentions, to amend the kinase data with downstream regulating factors
+- Implement module for feedback loop on durg screening data
+
 #### *4. What skills would additional collaborators ideally have?*
+
+- Math
+- Biology, drug screening
 
 ## Reproduction: *How to reproduce the findings!*
 
-### Docker
-
-*The Docker image contains <R/jupyter> notebooks of all analyses and the dependencies to run them. *Be sure to note if you need any special credentials to access data for these analyses, **don't package restricted data** in your containers!*
-
-Instructions for running the following notebooks: *be sure to adjust these instructions as necessary! check out https://github.com/Sage-Bionetworks/nf-hackathon-2019 for example containers and instructions*
-
-1. `docker pull <your dockerhub repo>/<this container>` command to pull the image from the DockerHub
-2. `docker run <your dockerhub repo>/<this container>` Run the docker image from the master shell script
+1. Scrape the Synodos Kinase profiling into database using `loadKinese` function
+2. Download all Lincs data using the `downloadLincs` function to local machine
+3. Populate kinase inhibition molecule data from Lincs data with function `loadLincs`
+4. Use `scoreKinase` function to rank the important kinases for the relevant tumor sample, eg: `baselines=Syn1_SF,Syn2_SF` and `alternatives=Syn5_SF,Syn6_SF,Syn8,Syn10,Syn11`
+5. Calculate the best drugs using the `scoreDrugs` function
 
 ### Important Resources *: primary data, github repository, Synapse project, dockerfile link etc.*
 
