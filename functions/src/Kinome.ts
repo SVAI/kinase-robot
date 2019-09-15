@@ -71,7 +71,8 @@ export default class Kinome {
         score: baselineAverage && alternativeAverage ? (alternativeAverage / baselineAverage) : null
       }
     })
-    return { results }
+    const results2 = results.filter(notUndefined)
+    return results2.sort((a, b) => (b.score || 0) - (a.score || 0))
   }
 
   static async getScores(compounds: string[]) {
