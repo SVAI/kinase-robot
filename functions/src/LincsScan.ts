@@ -1,6 +1,5 @@
 import axios from 'axios'
 import * as parse from 'csv-parse'
-import * as fs from 'fs'
 
 export interface LincsRecord {
   moleculeLincsId: string,
@@ -15,21 +14,6 @@ export interface LincsRecord {
 export default class LincsScan {
   constructor(private csvUrl: string) {}
   columns: string[] = ['moleculeLincsId', 'moleculeName', 'proteinLincsId', 'proteinName', 'score', 'concentration', 'contentrationUnit']
-
-  async fetchLocal(): Promise<string> {
-    const path = __dirname + '/dataset_20107_20190914215210.csv'
-    let content: string
-    console.log('dir', __dirname)
-    return await new Promise((resolve, reject) => {
-      fs.readFile(path, (err, data) => {
-        if (err) {
-          throw err
-        }
-        content = data.toString()
-        resolve(content)
-      })
-    })
-  }
 
   async parseSync(data: string): Promise<LincsRecord[]> {
     return await new Promise((resolve, reject) => {
