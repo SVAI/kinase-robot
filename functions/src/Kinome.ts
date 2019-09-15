@@ -49,32 +49,42 @@ export default class Kinome {
     await Database.insert(this.table, record)
   }
 
-  static async compare(baseline: string, alternatives: string[]) {
-    const baselineRecords: KinomeRecord[] | undefined = await Database.get(this.table, {
-      where: ['name', baseline]
-    })
-    const alternativeScores: { [key: string]: (number | undefined)[] } = {}
-    await Promise.all(alternatives.map(async (alternative) => {
-      const alternativeRecords: KinomeRecord[] = await Database.get(this.table, {
-        where: ['name', alternative]
-      }) || []
-      alternativeRecords.forEach(ar => {
-        alternativeScores[ar.geneName] = alternativeScores[ar.geneName] || []
-        alternativeScores[ar.geneName].push(ar.intensity)
-      })
-    }))
-    const results = baselineRecords && baselineRecords.map(br => {
-      const alternativeIntensities = alternativeScores[br.geneName]//.filter(notUndefined)
+  static async compare(baselines: string[], alternatives: string[]) {
+    // const baselineRecords: KinomeRecord[] | undefined = await Database.get(this.table, {
+    //   where: ['name', baseline]
+    // })
+    const baselineScores = await this.getScores(baselines)
+    const alternativeScores = await this.getScores(alternatives)
+    const results = Object.keys(baselineScores).map(geneName => {
+      const baselineIntensities = baselineScores[geneName]//.filter(notUndefined)
+      const baselineAverage = average(baselineIntensities.filter(notUndefined))
+      const alternativeIntensities = alternativeScores[geneName]//.filter(notUndefined)
       const alternativeAverage = average(alternativeIntensities.filter(notUndefined))
       return {
-        geneName: br.geneName,
-        baseline: br.intensity,
+        geneName: geneName,
+        baselineNames: baselines,
+        baselineIntensities,
+        baselineAverage,
         alternativeNames: alternatives,
         alternativeIntensities,
         alternativeAverage,
-        score: br.intensity && alternativeAverage ? (alternativeAverage / br.intensity) : null
+        score: baselineAverage && alternativeAverage ? (alternativeAverage / baselineAverage) : null
       }
     })
     return { results }
+  }
+
+  static async getScores(compounds: string[]) {
+    const compoundScores: { [key: string]: (number | undefined)[] } = {}
+    await Promise.all(compounds.map(async (compound) => {
+      const compoundRecords: KinomeRecord[] = await Database.get(this.table, {
+        where: ['name', compound]
+      }) || []
+      compoundRecords.forEach(ar => {
+        compoundScores[ar.geneName] = compoundScores[ar.geneName] || []
+        compoundScores[ar.geneName].push(ar.intensity)
+      })
+    }))
+    return compoundScores
   }
 }

@@ -43,16 +43,17 @@ export const loadKinese = functions.https.onRequest(async (req, resp) => {
 
 export const scoreKinase = functions.https.onRequest(async (req, resp) => {
   const { query } = req
-  const { baseline, alternatives } = query
+  const { baselines, alternatives }: { baselines: string, alternatives: string } = query
   // const baseline = 'Syn1_SF'
   // const alternatives = ['Syn8', 'Syn10', 'Syn11']
-  if (!baseline || !alternatives) {
+  if (!baselines || !alternatives) {
     console.error(req)
-    resp.send({ error: 'baseline or alternatives missing', query })
+    resp.send({ error: 'baselines or alternatives missing', query })
     return
   }
+  const baselines2 = baselines.split(',')
   const alternatives2 = alternatives.split(',')
-  const data = await Kinome.compare(baseline, alternatives2)
+  const data = await Kinome.compare(baselines2, alternatives2)
   // const data2 = await lincsScan.parseSync(data)
   // const database = new Database()
   // await database.connect()
