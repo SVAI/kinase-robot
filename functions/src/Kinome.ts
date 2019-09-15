@@ -1,6 +1,12 @@
 import * as parse from 'csv-parse'
 import Database from './Database'
 
+const average = (arr: number[]) => arr.reduce( ( p, c ) => p + c, 0 ) / arr.length;
+
+function notUndefined<T>(x: T | undefined): x is T {
+  return x !== undefined
+}
+
 type OutputRecord = Array<string>
 
 interface KinomeRecord {
@@ -43,21 +49,32 @@ export default class Kinome {
     await Database.insert(this.table, record)
   }
 
-  static async compare(baseline: string, alternative: string) {
-    const baselineRecords = await Database.get(this.table, {
+  static async compare(baseline: string, alternatives: string[]) {
+    const baselineRecords: KinomeRecord[] | undefined = await Database.get(this.table, {
       where: ['name', baseline]
     })
-    const alternativeRecords = await Database.get(this.table, {
-      where: ['name', alternative]
-    })
-    const results = baselineRecords && alternativeRecords && baselineRecords.map(br => {
-      const ar = alternativeRecords.find(ar => ar.geneName === br.geneName)
+    const alternativeScores: { [key: string]: (number | undefined)[] } = {}
+    await Promise.all(alternatives.map(async (alternative) => {
+      const alternativeRecords: KinomeRecord[] = await Database.get(this.table, {
+        where: ['name', alternative]
+      }) || []
+      alternativeRecords.forEach(ar => {
+        alternativeScores[ar.geneName] = alternativeScores[ar.geneName] || []
+        alternativeScores[ar.geneName].push(ar.intensity)
+      })
+    }))
+    const results = baselineRecords && baselineRecords.map(br => {
+      const alternativeIntensities = alternativeScores[br.geneName]//.filter(notUndefined)
+      const alternativeAverage = average(alternativeIntensities.filter(notUndefined))
       return {
         geneName: br.geneName,
         baseline: br.intensity,
-        score: ar && ar.intensity && (ar.intensity / br.intensity)
+        alternativeNames: alternatives,
+        alternativeIntensities,
+        alternativeAverage,
+        score: br.intensity && alternativeAverage ? (alternativeAverage / br.intensity) : null
       }
     })
-    return { results, baselineRecords, alternativeRecords }
+    return { results }
   }
 }

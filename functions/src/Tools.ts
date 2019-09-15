@@ -1,4 +1,5 @@
 import * as fs from 'fs'
+import Axios from 'axios'
 
 export default class Tools {
   static async fetchLocal(filename: string): Promise<string> {
@@ -16,4 +17,8 @@ export default class Tools {
     })
   }
 
+  async fetchRemote(url: string): Promise<string> {
+    const { data } = await Axios.get(url)
+    return data
+  }
 }

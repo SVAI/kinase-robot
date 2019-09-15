@@ -1,4 +1,3 @@
-import axios from 'axios'
 import * as parse from 'csv-parse'
 
 export interface LincsRecord {
@@ -12,7 +11,6 @@ export interface LincsRecord {
 }
 
 export default class LincsScan {
-  constructor(private csvUrl: string) {}
   columns: string[] = ['moleculeLincsId', 'moleculeName', 'proteinLincsId', 'proteinName', 'score', 'concentration', 'contentrationUnit']
 
   async parseSync(data: string): Promise<LincsRecord[]> {
@@ -56,10 +54,5 @@ export default class LincsScan {
       // // parser.write(data)
       // parser.end()
     })
-  }
-
-  async fetch() {
-    const { data } = await axios.get(this.csvUrl)
-    return data
   }
 }
